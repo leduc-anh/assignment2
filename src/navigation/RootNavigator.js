@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import ProductListScreen from '../screens/ProductListScreen';
+import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CartScreen from '../screens/CartScreen';
 import colors from '../constants/colors';
 
@@ -15,6 +16,11 @@ function ProductsStackNavigator() {
         name="ProductList"
         component={ProductListScreen}
         options={{ title: 'Products' }}
+      />
+      <ProductsStack.Screen
+        name="ProductDetail"
+        component={ProductDetailScreen}
+        options={({ route }) => ({ title: route.params.product.title })}
       />
     </ProductsStack.Navigator>
   );
