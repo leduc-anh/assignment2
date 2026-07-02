@@ -1,8 +1,9 @@
-import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { getProductAdvice } from '../api/geminiApi';
 import colors from '../constants/colors';
 import { formatPrice } from '../utils/format';
 
@@ -11,6 +12,23 @@ export default function ProductDetailScreen({ route }) {
   const { addItem } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorited = isFavorite(product.id);
+
+  const [advice, setAdvice] = useState(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
+  const [adviceError, setAdviceError] = useState(null);
+
+  const fetchAdvice = async () => {
+    setAdviceLoading(true);
+    setAdviceError(null);
+    try {
+      const text = await getProductAdvice(product);
+      setAdvice(text);
+    } catch (err) {
+      setAdviceError(err.message || 'Something went wrong');
+    } finally {
+      setAdviceLoading(false);
+    }
+  };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -33,6 +51,27 @@ export default function ProductDetailScreen({ route }) {
       <TouchableOpacity style={styles.button} onPress={() => addItem(product)}>
         <Text style={styles.buttonText}>Add to Cart</Text>
       </TouchableOpacity>
+
+      {adviceLoading ? (
+        <ActivityIndicator style={styles.adviceLoader} color={colors.primary} />
+      ) : advice ? (
+        <View style={styles.adviceCard}>
+          <Text style={styles.adviceLabel}>✨ AI Advisor</Text>
+          <Text style={styles.adviceText}>{advice}</Text>
+        </View>
+      ) : (
+        <TouchableOpacity style={styles.aiButton} onPress={fetchAdvice}>
+          <Text style={styles.aiButtonText}>✨ AI Advisor</Text>
+        </TouchableOpacity>
+      )}
+      {adviceError && (
+        <View style={styles.adviceErrorRow}>
+          <Text style={styles.adviceErrorText}>{adviceError}</Text>
+          <TouchableOpacity onPress={fetchAdvice}>
+            <Text style={styles.adviceRetryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </ScrollView>
   );
 }
@@ -87,5 +126,51 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 15,
+  },
+  aiButton: {
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  aiButtonText: {
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  adviceLoader: {
+    marginTop: 16,
+  },
+  adviceCard: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 12,
+  },
+  adviceLabel: {
+    color: colors.primary,
+    fontWeight: '700',
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  adviceText: {
+    color: colors.text,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  adviceErrorRow: {
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  adviceErrorText: {
+    color: colors.danger,
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  adviceRetryText: {
+    color: colors.primary,
+    fontWeight: '600',
   },
 });
