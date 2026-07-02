@@ -1,60 +1,56 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchProducts, searchProducts } from '../api/productsApi';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { fetchProducts } from '../api/productsApi';
 
 const PAGE_SIZE = 10;
+const CATALOG_SIZE = 194;
 
-export function useProducts(searchQuery) {
-  const [products, setProducts] = useState([]);
-  const [total, setTotal] = useState(0);
+export function useProducts({ searchQuery, minPrice, maxPrice }) {
+  const [catalog, setCatalog] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
-  const requestId = useRef(0);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const runQuery = useCallback(async (query, skip, { append }) => {
-    const currentRequestId = ++requestId.current;
-    if (append) {
-      setLoadingMore(true);
-    } else {
-      setLoading(true);
-      setLoadingMore(false);
-    }
+  const loadCatalog = useCallback(async () => {
+    setLoading(true);
     setError(null);
     try {
-      const data = query
-        ? await searchProducts({ q: query, limit: PAGE_SIZE, skip })
-        : await fetchProducts({ limit: PAGE_SIZE, skip });
-      if (currentRequestId !== requestId.current) return;
-      setTotal(data.total);
-      setProducts((current) => (append ? [...current, ...data.products] : data.products));
+      const data = await fetchProducts({ limit: CATALOG_SIZE, skip: 0 });
+      setCatalog(data.products);
     } catch (err) {
-      if (currentRequestId !== requestId.current) return;
       setError(err.message || 'Something went wrong');
-      if (!append) {
-        setProducts([]);
-      }
     } finally {
-      if (currentRequestId !== requestId.current) return;
-      if (append) {
-        setLoadingMore(false);
-      } else {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    runQuery(searchQuery, 0, { append: false });
-  }, [searchQuery, runQuery]);
+    loadCatalog();
+  }, [loadCatalog]);
+
+  const filtered = useMemo(() => {
+    const query = (searchQuery || '').trim().toLowerCase();
+    const min = minPrice === '' || minPrice == null ? -Infinity : Number(minPrice);
+    const max = maxPrice === '' || maxPrice == null ? Infinity : Number(maxPrice);
+    return catalog.filter((product) => {
+      const matchesQuery = query === '' || product.title.toLowerCase().includes(query);
+      const matchesPrice = product.price >= min && product.price <= max;
+      return matchesQuery && matchesPrice;
+    });
+  }, [catalog, searchQuery, minPrice, maxPrice]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, minPrice, maxPrice]);
+
+  const products = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
 
   const loadMore = useCallback(() => {
-    if (loading || loadingMore || products.length >= total) return;
-    runQuery(searchQuery, products.length, { append: true });
-  }, [loading, loadingMore, products.length, total, searchQuery, runQuery]);
+    setVisibleCount((current) => Math.min(current + PAGE_SIZE, filtered.length));
+  }, [filtered.length]);
 
   const refresh = useCallback(() => {
-    runQuery(searchQuery, 0, { append: false });
-  }, [searchQuery, runQuery]);
+    loadCatalog();
+  }, [loadCatalog]);
 
-  return { products, total, loading, loadingMore, error, loadMore, refresh };
+  return { products, total: filtered.length, loading, error, loadMore, refresh };
 }

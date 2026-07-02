@@ -11,7 +11,3 @@ async function request(path) {
 export function fetchProducts({ limit = 10, skip = 0 } = {}) {
   return request(`/products?limit=${limit}&skip=${skip}`);
 }
-
-export function searchProducts({ q, limit = 10, skip = 0 }) {
-  return request(`/products/search?q=${encodeURIComponent(q)}&limit=${limit}&skip=${skip}`);
-}

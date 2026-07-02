@@ -3,14 +3,21 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View }
 import { useProducts } from '../hooks/useProducts';
 import ProductCard from '../components/ProductCard';
 import SearchBar from '../components/SearchBar';
-import LoadingFooter from '../components/LoadingFooter';
+import PriceFilter from '../components/PriceFilter';
 import EmptyState from '../components/EmptyState';
 import ErrorState from '../components/ErrorState';
 import colors from '../constants/colors';
 
 export default function ProductListScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const { products, loading, loadingMore, error, loadMore, refresh } = useProducts(searchQuery);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [showFilter, setShowFilter] = useState(false);
+  const { products, loading, error, loadMore, refresh } = useProducts({
+    searchQuery,
+    minPrice,
+    maxPrice,
+  });
 
   const renderItem = useCallback(
     ({ item }) => (
@@ -22,24 +29,32 @@ export default function ProductListScreen({ navigation }) {
     [navigation]
   );
 
-  const renderFooter = () => {
-    if (loadingMore) return <LoadingFooter visible />;
-    if (error && products.length > 0) {
-      return (
-        <View style={styles.footerError}>
-          <Text style={styles.footerErrorText}>{error}</Text>
-          <TouchableOpacity onPress={loadMore}>
-            <Text style={styles.footerRetryText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-    return null;
-  };
+  const hasActiveFilter = minPrice !== '' || maxPrice !== '';
 
   return (
     <View style={styles.container}>
       <SearchBar onSearch={setSearchQuery} />
+      <TouchableOpacity
+        style={styles.filterToggle}
+        onPress={() => setShowFilter((current) => !current)}
+      >
+        <Text style={styles.filterToggleText}>
+          {showFilter ? 'Hide filter' : 'Filter'}
+          {hasActiveFilter ? ' •' : ''}
+        </Text>
+      </TouchableOpacity>
+      {showFilter && (
+        <PriceFilter
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          onChangeMinPrice={setMinPrice}
+          onChangeMaxPrice={setMaxPrice}
+          onClear={() => {
+            setMinPrice('');
+            setMaxPrice('');
+          }}
+        />
+      )}
       {loading ? (
         <ActivityIndicator style={styles.loader} color={colors.primary} size="large" />
       ) : error && products.length === 0 ? (
@@ -55,7 +70,6 @@ export default function ProductListScreen({ navigation }) {
           contentContainerStyle={styles.listContent}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}
-          ListFooterComponent={renderFooter}
         />
       )}
     </View>
@@ -67,24 +81,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  filterToggle: {
+    alignSelf: 'flex-start',
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  filterToggleText: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 13,
+  },
   loader: {
     flex: 1,
   },
   listContent: {
     paddingHorizontal: 8,
     paddingBottom: 16,
-  },
-  footerError: {
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  footerErrorText: {
-    color: colors.danger,
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  footerRetryText: {
-    color: colors.primary,
-    fontWeight: '600',
   },
 });
