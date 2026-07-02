@@ -17,6 +17,7 @@ export function useProducts(searchQuery) {
       setLoadingMore(true);
     } else {
       setLoading(true);
+      setLoadingMore(false);
     }
     setError(null);
     try {
