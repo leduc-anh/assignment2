@@ -1,0 +1,54 @@
+import React from 'react';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
+import ProductListScreen from '../screens/ProductListScreen';
+import CartScreen from '../screens/CartScreen';
+import colors from '../constants/colors';
+
+const ProductsStack = createNativeStackNavigator();
+
+function ProductsStackNavigator() {
+  return (
+    <ProductsStack.Navigator>
+      <ProductsStack.Screen
+        name="ProductList"
+        component={ProductListScreen}
+        options={{ title: 'Products' }}
+      />
+    </ProductsStack.Navigator>
+  );
+}
+
+const Tab = createBottomTabNavigator();
+
+export default function RootNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+      }}
+    >
+      <Tab.Screen
+        name="Products"
+        component={ProductsStackNavigator}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="storefront-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Cart"
+        component={CartScreen}
+        options={{
+          title: 'Cart',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cart-outline" color={color} size={size} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
