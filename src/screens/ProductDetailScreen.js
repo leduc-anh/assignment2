@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../context/CartContext';
@@ -16,6 +16,12 @@ export default function ProductDetailScreen({ route }) {
   const [advice, setAdvice] = useState(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
   const [adviceError, setAdviceError] = useState(null);
+
+  useEffect(() => {
+    setAdvice(null);
+    setAdviceLoading(false);
+    setAdviceError(null);
+  }, [product.id]);
 
   const fetchAdvice = async () => {
     setAdviceLoading(true);
