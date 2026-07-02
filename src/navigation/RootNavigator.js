@@ -35,7 +35,6 @@ export default function RootNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
-        headerShown: false,
         tabBarActiveTintColor: colors.primary,
       }}
     >
@@ -43,6 +42,7 @@ export default function RootNavigator() {
         name="Products"
         component={ProductsStackNavigator}
         options={{
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="storefront-outline" color={color} size={size} />
           ),
