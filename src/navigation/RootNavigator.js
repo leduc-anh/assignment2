@@ -6,6 +6,7 @@ import ProductListScreen from '../screens/ProductListScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CartScreen from '../screens/CartScreen';
 import colors from '../constants/colors';
+import { useCart } from '../context/CartContext';
 
 const ProductsStack = createNativeStackNavigator();
 
@@ -29,6 +30,8 @@ function ProductsStackNavigator() {
 const Tab = createBottomTabNavigator();
 
 export default function RootNavigator() {
+  const { totalCount } = useCart();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -53,6 +56,7 @@ export default function RootNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cart-outline" color={color} size={size} />
           ),
+          tabBarBadge: totalCount > 0 ? totalCount : undefined,
         }}
       />
     </Tab.Navigator>
