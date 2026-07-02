@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useProducts } from '../hooks/useProducts';
+import { useFavorites } from '../context/FavoritesContext';
 import ProductCard from '../components/ProductCard';
 import SearchBar from '../components/SearchBar';
 import PriceFilter from '../components/PriceFilter';
@@ -18,15 +19,18 @@ export default function ProductListScreen({ navigation }) {
     minPrice,
     maxPrice,
   });
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const renderItem = useCallback(
     ({ item }) => (
       <ProductCard
         product={item}
         onPress={() => navigation.navigate('ProductDetail', { product: item })}
+        isFavorite={isFavorite(item.id)}
+        onToggleFavorite={() => toggleFavorite(item)}
       />
     ),
-    [navigation]
+    [navigation, isFavorite, toggleFavorite]
   );
 
   const hasActiveFilter = minPrice !== '' || maxPrice !== '';

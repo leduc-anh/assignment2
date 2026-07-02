@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import ProductListScreen from '../screens/ProductListScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import CartScreen from '../screens/CartScreen';
+import FavoritesScreen from '../screens/FavoritesScreen';
 import colors from '../constants/colors';
 import { useCart } from '../context/CartContext';
 
@@ -45,6 +46,16 @@ export default function RootNavigator() {
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="storefront-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Favorites"
+        component={FavoritesScreen}
+        options={{
+          title: 'Favorites',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart-outline" color={color} size={size} />
           ),
         }}
       />

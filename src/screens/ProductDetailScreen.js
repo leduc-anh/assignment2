@@ -1,17 +1,33 @@
 import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '../context/CartContext';
+import { useFavorites } from '../context/FavoritesContext';
 import colors from '../constants/colors';
 import { formatPrice } from '../utils/format';
 
 export default function ProductDetailScreen({ route }) {
   const { product } = route.params;
   const { addItem } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const favorited = isFavorite(product.id);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Image source={{ uri: product.thumbnail }} style={styles.image} resizeMode="cover" />
-      <Text style={styles.title}>{product.title}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{product.title}</Text>
+        <TouchableOpacity
+          onPress={() => toggleFavorite(product)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons
+            name={favorited ? 'heart' : 'heart-outline'}
+            size={24}
+            color={favorited ? colors.danger : colors.muted}
+          />
+        </TouchableOpacity>
+      </View>
       <Text style={styles.price}>{formatPrice(product.price)}</Text>
       <Text style={styles.description}>{product.description}</Text>
       <TouchableOpacity style={styles.button} onPress={() => addItem(product)}>
@@ -35,11 +51,18 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: colors.primarySoft,
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginTop: 16,
+  },
   title: {
+    flex: 1,
     color: colors.text,
     fontSize: 20,
     fontWeight: '700',
-    marginTop: 16,
+    marginRight: 12,
   },
   price: {
     color: colors.primary,
